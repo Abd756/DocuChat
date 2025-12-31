@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_community.document_loaders.word_document import Docx2txtLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 import tempfile
@@ -48,21 +48,27 @@ class DocumentProcessor:
             # Split into chunks
             chunks = self.text_splitter.split_documents(documents)
             
-            # Create temporary directory for vector store
-            temp_dir = tempfile.mkdtemp()
+            # Use a persistent directory for the embeddings
+            persist_dir = "chroma_db"
+            
+            # Clear previous vector store to avoid duplicates/mixing documents
+            import shutil
+            if os.path.exists(persist_dir):
+                shutil.rmtree(persist_dir)
             
             # Create vector store
             vectorstore = Chroma.from_documents(
                 documents=chunks,
                 embedding=self.embeddings,
-                persist_directory=temp_dir
+                persist_directory=persist_dir
             )
             
             # Document information
             doc_info = {
                 'pages': len(documents),
                 'chunks': len(chunks),
-                'file_path': file_path
+                'file_path': file_path,
+                'storage': persist_dir
             }
             
             return vectorstore, doc_info

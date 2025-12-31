@@ -1,292 +1,70 @@
-# 💬 DocuChat - Real-Time RAG System
+# 💬 DocuChat AI
 
-A sophisticated Retrieval-Augmented Generation (RAG) system that transforms any document into an intelligent conversational partner. Upload your documents and have natural conversations to extract insights, summaries, and specific information with precision.
+DocuChat AI is a modern, intelligent document conversation platform. Upload your PDFs, text files, or Word documents and have context-aware conversations with them using state-of-the-art open-source LLMs.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)
-![LangChain](https://img.shields.io/badge/LangChain-0.1+-green.svg)
-![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)
+![LangChain](https://img.shields.io/badge/LangChain-121212?style=for-the-badge&logo=chainlink&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
 
-## 🔍 The Problem
+## 🚀 Features
 
-Traditional Large Language Models (LLMs) struggle with:
-- Processing large documents effectively
-- Maintaining context across extensive content
-- Providing source citations for their responses
-- Handling document-specific queries with precision
+- **Multi-format Support**: Upload PDF, TXT, or DOCX files.
+- **Smart Embeddings**: Uses `all-MiniLM-L6-v2` for efficient local vector search via ChromaDB.
+- **Conversational Memory**: The AI remembers previous exchanges within a session for natural follow-up questions.
+- **Open Source LLMs**: Integrated with Hugging Face Inference API (Mistral-7B, Zephyr, etc.).
+- **Modern UI**: A premium, responsive interface inspired by ChatGPT/Claude.
+- **Automatic Cleanup**: Ensures clean processing by refreshing the vector store for each new document.
 
-## 💡 The Solution
+## 🛠️ Local Setup
 
-Our RAG system addresses these challenges by:
-- **Real-time document processing** with intelligent chunking
-- **Vector embeddings** for semantic understanding
-- **Contextual conversations** with memory retention
-- **Source citation** showing exactly where answers originate
-- **ChatGPT-like interface** for intuitive user experience
-
-## ⚡ Key Features
-
-### 🚀 Core Functionality
-- ✅ **Multi-format Support** - PDF, TXT, and DOCX files
-- ✅ **Real-time Processing** - Instant document analysis and embedding creation
-- ✅ **Intelligent Chunking** - Optimized text segmentation for better retrieval
-- ✅ **Semantic Search** - Vector-based similarity matching
-- ✅ **Conversation Memory** - Maintains context throughout chat sessions
-- ✅ **Source References** - Direct citations from original document sections
-
-### 🎨 User Experience
-- ✅ **Modern UI** - Clean, responsive ChatGPT-inspired interface
-- ✅ **Progress Tracking** - Real-time processing status updates
-- ✅ **File Management** - Easy upload with size and format validation
-- ✅ **Interactive Chat** - Natural conversation flow with the document
-- ✅ **Mobile Responsive** - Works seamlessly across devices
-
-## 🛠️ Tech Stack
-
-### Backend & AI
-- **Framework:** LangChain for RAG pipeline orchestration
-- **LLM:** Google Gemini 1.5 Pro for intelligent response generation
-- **Embeddings:** HuggingFace all-MiniLM-L6-v2 (384-dimensional vectors)
-- **Vector Database:** ChromaDB with MMR (Maximal Marginal Relevance) retrieval
-- **Document Processing:** PyPDFLoader, RecursiveCharacterTextSplitter
-
-### Frontend & UI
-- **Web Framework:** Streamlit for rapid prototyping and deployment
-- **Styling:** Custom CSS for modern, responsive design
-- **State Management:** Streamlit session state for conversation history
-- **UI Components:** File uploaders, progress bars, chat interface
-
-### Memory & Performance
-- **Conversation Memory:** ConversationBufferMemory for chat history
-- **Chunking Strategy:** 1000 characters with 200 character overlap
-- **Retrieval:** Top-k similarity search with source tracking
-- **Processing:** Async document handling with progress indicators
-
-## 📁 Project Structure
-
-```
-Real_Time_Rag/
-├── app.py                 # Main Streamlit application
-├── document_processor.py  # Document loading and chunking logic
-├── chatbot_engine.py     # Conversation and response generation
-├── utils.py              # Utility functions and session management
-├── requirements.txt      # Python dependencies
-└── README.md            # Project documentation
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Google API key for Gemini LLM
-- Virtual environment (recommended)
-
-### Installation
-
-1. **Clone the repository**
+1. **Clone the repository**:
    ```bash
-   git clone https://github.com/Abd756/DocuChat.git
+   git clone <your-repo-url>
    cd DocuChat
    ```
 
-2. **Create virtual environment**
+2. **Set up Virtual Environment**:
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   .\venv\Scripts\activate  # On Windows
+   # source venv/bin/activate # On Mac/Linux
    ```
 
-3. **Install dependencies**
+3. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Set up environment variables**
-   ```bash
-   # Create .env file or set environment variable
-   export GOOGLE_API_KEY="your-gemini-api-key"
-   
-   # On Windows PowerShell:
-   $env:GOOGLE_API_KEY="your-gemini-api-key"
+4. **Configuration**:
+   Create a `.env` file in the root directory:
+   ```env
+   HUGGINGFACEHUB_API_TOKEN=your_huggingface_token_here
    ```
+   *Note: Ensure your Hugging Face token has "Inference Provider" permissions enabled.*
 
-5. **Run the application**
+5. **Run the App**:
    ```bash
    streamlit run app.py
    ```
 
-6. **Open your browser**
-   Navigate to `http://localhost:8501`
+## ☁️ Deployment on Streamlit Cloud
 
-## 📝 Usage Examples
+1. Push your code to a GitHub repository.
+2. Connect your GitHub account to [Streamlit Cloud](https://share.streamlit.io/).
+3. Create a new app and point it to `app.py`.
+4. **Important**: Add your `HUGGINGFACEHUB_API_TOKEN` to the Streamlit **Secrets** manager:
+   ```toml
+   HUGGINGFACEHUB_API_TOKEN = "your_token_here"
+   ```
 
-### Basic Document Upload
-1. Upload a PDF, TXT, or DOCX file (up to 200MB)
-2. Wait for processing and embedding creation
-3. Start asking questions about your document
+## 📁 Project Structure
 
-### Sample Queries
-```
-📋 "Summarize this document in 3 key points"
-🔍 "What are the main findings in chapter 2?"
-💡 "Explain the methodology used in this research"
-📊 "What are the conclusions and recommendations?"
-🎯 "Find information about [specific topic]"
-```
+- `app.py`: Main Streamlit application and UI logic.
+- `document_processor.py`: Handles file loading, splitting, and vector indexing.
+- `chatbot_engine.py`: Manages the LLM chain, memory, and retrieval.
+- `requirements.txt`: List of required Python packages.
+- `chroma_db/`: Local directory for persistent vector storage.
 
-### Advanced Features
-- **Source Citations:** Click "View Sources" to see exact document references
-- **Conversation History:** Previous context is maintained throughout the session
-- **New Sessions:** Use the "New" button to start fresh with a different document
+## 📝 License
 
-## 🎯 Use Cases
-
-### Professional Applications
-- **Research Analysis** - Quickly extract insights from academic papers
-- **Legal Document Review** - Find specific clauses and information
-- **Business Intelligence** - Analyze reports and strategic documents
-- **Medical Research** - Navigate through clinical studies and findings
-
-### Educational Use
-- **Study Assistant** - Get explanations from textbooks and papers
-- **Literature Review** - Summarize and compare multiple sources
-- **Thesis Research** - Extract relevant information efficiently
-
-## 🔧 Configuration
-
-### Document Processing Settings
-```python
-# In document_processor.py
-chunk_size = 1000        # Characters per chunk
-chunk_overlap = 200      # Overlap between chunks
-top_k = 10              # Number of relevant chunks to retrieve
-```
-
-### Model Configuration
-```python
-# Embedding model: all-MiniLM-L6-v2
-# Vector dimensions: 384
-# Similarity metric: Cosine similarity
-# Retrieval strategy: MMR (Maximal Marginal Relevance)
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Development Setup
-```bash
-# Install development dependencies
-pip install -r requirements-dev.txt
-
-# Run tests
-python -m pytest tests/
-
-# Format code
-black app.py document_processor.py chatbot_engine.py utils.py
-```
-
-## 📊 Performance Metrics
-
-- **Processing Speed:** ~2-3 seconds per MB of document
-- **Embedding Generation:** ~1 second per 1000 characters
-- **Query Response Time:** ~2-4 seconds depending on document size
-- **Supported File Size:** Up to 200MB per document
-- **Memory Usage:** Optimized for documents up to 10,000 pages
-
-## 🚀 Deployment
-
-### Local Deployment
-```bash
-streamlit run app.py --server.port 8501
-```
-
-### Cloud Deployment Options
-- **Streamlit Cloud:** Direct GitHub integration
-- **Heroku:** Container-based deployment
-- **Docker:** Containerized deployment
-- **AWS/GCP/Azure:** Cloud platform deployment
-
-### Docker Deployment
-```dockerfile
-FROM python:3.9-slim
-
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-COPY . .
-EXPOSE 8501
-
-CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0"]
-```
-
-## 🔒 Security & Privacy
-
-- **Local Processing:** Documents are processed locally and not stored permanently
-- **API Security:** Secure API key management for external services
-- **Data Privacy:** No document content is logged or persisted
-- **Memory Management:** Automatic cleanup of temporary files
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. API Key Error**
-```bash
-Error: Google API key not found
-Solution: Set GOOGLE_API_KEY environment variable
-```
-
-**2. Memory Issues with Large Files**
-```bash
-Error: Out of memory
-Solution: Reduce chunk_size or process smaller documents
-```
-
-**3. Slow Processing**
-```bash
-Issue: Document taking too long to process
-Solution: Check file size and internet connection for API calls
-```
-
-## 📈 Future Enhancements
-
-- [ ] **Multi-document Chat** - Conversation across multiple documents
-- [ ] **Advanced Search** - Filters and advanced query options
-- [ ] **Export Features** - Save conversations and summaries
-- [ ] **Collaborative Features** - Share documents and conversations
-- [ ] **API Integration** - REST API for external applications
-- [ ] **Multi-language Support** - Process documents in various languages
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **LangChain** for the powerful RAG framework
-- **Streamlit** for the intuitive web interface
-- **HuggingFace** for the embedding models
-- **Google** for the Gemini LLM API
-- **ChromaDB** for efficient vector storage
-
-## 📞 Contact & Support
-
-- **GitHub Issues:** [Report bugs or request features](https://github.com/Abd756/DocuChat/issues)
-- **LinkedIn:** [Connect with the developer](https://linkedin.com/in/yourprofile)
-- **Email:** your.email@example.com
-
----
-
-### 🌟 Star this repository if you found it helpful!
-
-**Made with ❤️ by [Your Name]**
-
-*Transform your documents into intelligent conversations today!*
+This project is open-source and available under the MIT License.

@@ -1,112 +1,118 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain_core.prompts import PromptTemplate
-from langchain.memory import ConversationBufferMemory
-from dotenv import load_dotenv
 import os
+import logging
+from typing import List, Tuple
+from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from dotenv import load_dotenv
 
 load_dotenv()
 
 class ChatbotEngine:
-    def __init__(self, vectorstore, top_k=3):
+    def __init__(self, vectorstore, top_k=5):
         self.vectorstore = vectorstore
         self.top_k = top_k
+        self.history = [] # Manual conversation history
         
-        # Initialize components
-        self.llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-pro",
-            google_api_key=os.getenv("GOOGLE_API_KEY"),
-            temperature=0.7  # Make it more conversational
-        )
+        # Initialize the LLM - Using ChatHuggingFace wrapper for better chat capabilities
+        repo_id = "mistralai/Mistral-7B-Instruct-v0.2"
+        
+        try:
+            endpoint_llm = HuggingFaceEndpoint(
+                repo_id=repo_id,
+                max_new_tokens=1024,
+                temperature=0.1,
+                huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN"),
+                timeout=300
+            )
+            self.llm = ChatHuggingFace(llm=endpoint_llm)
+        except Exception as e:
+            logging.error(f"Error initializing ChatHuggingFace: {e}")
+            # Fallback to direct endpoint
+            self.llm = HuggingFaceEndpoint(
+                repo_id=repo_id,
+                max_new_tokens=512,
+                temperature=0.1,
+                huggingfacehub_api_token=os.getenv("HUGGINGFACEHUB_API_TOKEN")
+            )
+        
+        # Initialize retriever
         self.retriever = vectorstore.as_retriever(
-            search_kwargs={"k": top_k},
-            search_type="mmr"  # Use Maximum Marginal Relevance for better diversity
+            search_kwargs={"k": top_k}
         )
         
-        # Initialize memory
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True,
-            output_key="answer"
-        )
+        # Define the RAG prompt with history
+        self.prompt = ChatPromptTemplate.from_template("""
+        You are a helpful and intelligent document assistant. Use the following pieces of context and the conversation history to answer the visitor's question.
+        If you don't know the answer or the context doesn't provide enough information, just say that you don't know.
         
-        # Create prompt template
-        self.prompt_template = """
-        You are a friendly and helpful AI assistant that answers questions based on the provided document context.
-        
-        Guidelines:
-        - Always be warm, conversational, and helpful in your responses
-        - If the user asks about something directly related to the document, use the context to provide detailed answers
-        - If the user asks general questions or greetings, respond naturally and offer to help with document-related questions
-        - If you cannot find specific information in the context, acknowledge this politely and offer alternative help
-        - Use a conversational tone and feel free to ask follow-up questions
-        - When referencing the document, be specific about what information you found
-        
-        Document Context:
+        Context:
         {context}
         
-        Previous Conversation:
-        {chat_history}
+        Recent Conversation History:
+        {history}
         
-        User Question: {question}
+        Question: {question}
         
-        Friendly Response:
+        Answer:""")
+        
+        # RAG Chain
+        self.chain = (
+            {
+                "context": self.retriever | self._format_docs, 
+                "history": lambda x: self._format_history(),
+                "question": RunnablePassthrough()
+            }
+            | self.prompt
+            | self.llm
+            | StrOutputParser()
+        )
+
+    def _format_docs(self, docs):
+        """Format retrieved documents as context string"""
+        return "\n\n".join(doc.page_content for doc in docs)
+
+    def _format_history(self):
+        """Format history list into a string"""
+        if not self.history:
+            return "No previous interaction."
+        # Keep last 5 exchanges to avoid prompt bloat
+        return "\n".join([f"{m['role']}: {m['content']}" for m in self.history[-6:]])
+
+    def get_response(self, question: str) -> Tuple[str, List[str]]:
         """
-        
-        self.prompt = PromptTemplate(
-            template=self.prompt_template,
-            input_variables=["context", "chat_history", "question"]
-        )
-        
-        # Create conversational chain
-        self.qa_chain = ConversationalRetrievalChain.from_llm(
-            llm=self.llm,
-            retriever=self.retriever,
-            memory=self.memory,
-            return_source_documents=True,
-            combine_docs_chain_kwargs={"prompt": self.prompt}
-        )
-    
-    def get_response(self, question):
-        """Get response from the chatbot"""
+        Process the user query and return (response_text, list_of_source_contents)
+        """
         try:
-            # Check if it's a greeting or general question
-            greeting_words = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening', 'how are you', 'thanks', 'thank you']
-            question_lower = question.lower()
+            # 1. Get retrieved docs for source tracking and filter unique ones
+            docs = self.retriever.invoke(question)
             
-            # If it's a simple greeting, respond friendly but still use the retrieval system
-            if any(greeting in question_lower for greeting in greeting_words) and len(question.split()) <= 3:
-                enhanced_question = f"{question} Can you tell me what this document is about?"
-                result = self.qa_chain({"question": enhanced_question})
-            else:
-                result = self.qa_chain({"question": question})
+            # Use a seen set to maintain order and uniqueness
+            seen = set()
+            sources = []
+            for doc in docs:
+                content = doc.page_content.strip()
+                if content and content not in seen:
+                    seen.add(content)
+                    sources.append(content)
             
-            answer = result['answer']
-            sources = [doc.page_content for doc in result['source_documents']]
+            # 2. Generate response including history
+            response = self.chain.invoke(question)
             
-            # Post-process the answer to make it more friendly
-            if "I don't have enough information" in answer or "cannot find" in answer.lower():
-                if any(greeting in question_lower for greeting in greeting_words):
-                    answer = f"Hello! 👋 I'm here to help you with questions about your document. {answer} Feel free to ask me anything specific about the content!"
-                else:
-                    answer = f"I don't have specific information about that in the document I'm working with. However, I can help you with other questions about the content. What else would you like to know?"
+            # 3. Update history
+            self.history.append({"role": "User", "content": question})
+            self.history.append({"role": "Assistant", "content": response.strip()})
             
-            return answer, sources
+            return response.strip(), sources
             
         except Exception as e:
-            raise Exception(f"Error generating response: {str(e)}")
-    
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            logging.error(f"Error in ChatbotEngine: {error_msg}")
+            if "Authorization" in str(e):
+                return "Authentication Error: Please verify your HUGGINGFACEHUB_API_TOKEN.", []
+            return f"Thinking error: {error_msg}", []
+
     def clear_memory(self):
-        """Clear conversation memory"""
-        self.memory.clear()
-    
-    def get_chat_history(self):
-        """Get formatted chat history"""
-        history = []
-        messages = self.memory.chat_memory.messages
-        
-        for message in messages:
-            role = "Human" if message.type == "human" else "AI"
-            history.append(f"{role}: {message.content}")
-        
-        return history
+        """Reset conversation history"""
+        self.history = []

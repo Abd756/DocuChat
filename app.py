@@ -105,15 +105,25 @@ st.markdown("""
         min-height: 400px;
     }
     
-    /* Source styling */
+    /* Source styling - improved for dark/light mode compatibility */
     .source-item {
-        background: #f8fafc;
+        background: rgba(0, 0, 0, 0.05);
         border-left: 4px solid #10a37f;
         padding: 1rem;
         margin: 0.5rem 0;
         border-radius: 6px;
         font-size: 0.9rem;
-        line-height: 1.5;
+        line-height: 1.6;
+        color: inherit; /* Follow theme color */
+        border-top: 1px solid rgba(0,0,0,0.05);
+        border-right: 1px solid rgba(0,0,0,0.05);
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    /* Ensure content inside source-item is visible */
+    .source-content {
+        color: inherit;
+        opacity: 0.9;
     }
     
     /* Enhanced buttons */
@@ -323,19 +333,20 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         
-        if message["role"] == "assistant" and "sources" in message and message["sources"]:
-            with st.expander(f"📚 **View Sources** ({len(message['sources'])} references)", expanded=False):
-                for i, source in enumerate(message["sources"], 1):
-                    st.markdown(f"""
-                    <div class="source-item">
-                        <div style="font-weight: 600; color: #10a37f; margin-bottom: 0.5rem;">
-                            📖 Source {i}
-                        </div>
-                        <div style="font-size: 0.9rem; line-height: 1.6;">
-                            {source[:350]}{'...' if len(source) > 350 else ''}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+# Sources display removed as per user request
+# if message["role"] == "assistant" and "sources" in message and message["sources"]:
+#     with st.expander(f"📚 **View Sources** ({len(message['sources'])} references)", expanded=False):
+#         for i, source in enumerate(message["sources"], 1):
+#             st.markdown(f"""
+#             <div class="source-item">
+#                 <div style="font-weight: 600; color: #10a37f; margin-bottom: 0.5rem;">
+#                     📖 Source {i}
+#                 </div>
+#                 <div class="source-content">
+#                     {source[:350]}{'...' if len(source) > 350 else ''}
+#                 </div>
+#             </div>
+#             """, unsafe_allow_html=True)
 
 # # Example questions
 # if st.session_state.chatbot_engine and len(st.session_state.messages) <= 1:
@@ -377,19 +388,20 @@ if st.session_state.chatbot_engine:
                     response, sources = st.session_state.chatbot_engine.get_response(prompt)
                     st.markdown(response)
                     
-                    if sources:
-                        with st.expander(f"📚 **View Sources** ({len(sources)} references)", expanded=False):
-                            for i, source in enumerate(sources, 1):
-                                st.markdown(f"""
-                                <div class="source-item">
-                                    <div style="font-weight: 600; color: #10a37f; margin-bottom: 0.5rem;">
-                                        📖 Source {i}
-                                    </div>
-                                    <div style="font-size: 0.9rem; line-height: 1.6;">
-                                        {source[:350]}{'...' if len(source) > 350 else ''}
-                                    </div>
-                                </div>
-                                """, unsafe_allow_html=True)
+# Sources display removed as per user request
+# if sources:
+#     with st.expander(f"📚 **View Sources** ({len(sources)} references)", expanded=False):
+#         for i, source in enumerate(sources, 1):
+#             st.markdown(f"""
+#             <div class="source-item">
+#                 <div style="font-weight: 600; color: #10a37f; margin-bottom: 0.5rem;">
+#                     📖 Source {i}
+#                 </div>
+#                 <div class="source-content">
+#                     {source[:350]}{'...' if len(source) > 350 else ''}
+#                 </div>
+#             </div>
+#             """, unsafe_allow_html=True)
                 
                 except Exception as e:
                     response = f"⚠️ Sorry, I encountered an error: {str(e)}"
